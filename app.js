@@ -177,7 +177,8 @@ const stageRuleModal = document.getElementById('stage-rule-modal');
 
 function hideAllScreens() {
     [welcomeScreen, dashboardScreen, trainingScreen, quizScreen,
-     resultScreen, outOfHeartsScreen, stageRuleModal]
+     resultScreen, outOfHeartsScreen, stageRuleModal,
+     document.getElementById('rules-modal')]
         .forEach(el => el && el.classList.add('hidden'));
 }
 
