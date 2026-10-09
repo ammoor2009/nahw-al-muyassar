@@ -300,5 +300,72 @@
 
     <!-- ========== منطق التطبيق ========== -->
     <script src="app.js"></script>
+    <!-- ========== RULES MODAL ========== -->
+<div id="rules-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fade-in">
+    <div class="bg-slate-900 border border-teal-500/40 rounded-3xl max-w-lg w-full p-6 md:p-8 space-y-5 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+        
+        <button onclick="closeRulesModal()" class="absolute top-5 left-5 text-slate-400 hover:text-white transition p-2 bg-slate-800 rounded-xl">
+            <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+
+        <div class="flex items-center gap-3 pb-3 border-b border-slate-800">
+            <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-700 flex items-center justify-center text-white shadow-lg">
+                <i class="fa-solid fa-circle-question text-xl"></i>
+            </div>
+            <div>
+                <h4 class="text-xl font-bold text-teal-200">قواعد اللعبة والمعلومات</h4>
+                <p class="text-xs text-slate-400">تعرّف على طريقة اللعب والمكافآت</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-slate-300">
+            <div class="flex items-start gap-2 bg-slate-800/50 p-2.5 rounded-lg border border-slate-700/50">
+                <i class="fa-solid fa-heart text-rose-400 mt-0.5"></i>
+                <span>تبدأ بـ <strong class="text-rose-300">10 قلوب</strong></span>
+            </div>
+            <div class="flex items-start gap-2 bg-slate-800/50 p-2.5 rounded-lg border border-slate-700/50">
+                <i class="fa-solid fa-triangle-exclamation text-amber-400 mt-0.5"></i>
+                <span>خطأ أو انتهاء وقت = <strong class="text-amber-300">خصم قلب</strong></span>
+            </div>
+            <div class="flex items-start gap-2 bg-slate-800/50 p-2.5 rounded-lg border border-slate-700/50">
+                <i class="fa-solid fa-gift text-emerald-400 mt-0.5"></i>
+                <span><strong class="text-emerald-300">5 إجابات صحيحة متتالية</strong> = قلب إضافي</span>
+            </div>
+            <div class="flex items-start gap-2 bg-slate-800/50 p-2.5 rounded-lg border border-slate-700/50">
+                <i class="fa-solid fa-clock-rotate-left text-cyan-400 mt-0.5"></i>
+                <span>استعادة <strong class="text-cyan-300">3 قلوب كل 10 دقائق</strong></span>
+            </div>
+            <div class="flex items-start gap-2 bg-slate-800/50 p-2.5 rounded-lg border border-slate-700/50">
+                <i class="fa-solid fa-star text-amber-400 mt-0.5"></i>
+                <span><strong class="text-amber-300">10 نقاط</strong> لكل إجابة صحيحة</span>
+            </div>
+            <div class="flex items-start gap-2 bg-slate-800/50 p-2.5 rounded-lg border border-slate-700/50">
+                <i class="fa-solid fa-hourglass-half text-orange-400 mt-0.5"></i>
+                <span>وقت كل سؤال: <strong class="text-orange-300">30 ثانية</strong></span>
+            </div>
+            <div class="flex items-start gap-2 bg-slate-800/50 p-2.5 rounded-lg border border-slate-700/50">
+                <i class="fa-solid fa-map-location-dot text-emerald-400 mt-0.5"></i>
+                <span>إتمام مرحلة <strong class="text-emerald-300">يفتح التالية</strong></span>
+            </div>
+            <div class="flex items-start gap-2 bg-slate-800/50 p-2.5 rounded-lg border border-slate-700/50">
+                <i class="fa-solid fa-book-bookmark text-teal-400 mt-0.5"></i>
+                <span>راجع القواعد في <strong class="text-teal-300">ساحة التدريب</strong></span>
+            </div>
+            <div class="flex items-start gap-2 bg-slate-800/50 p-2.5 rounded-lg border border-slate-700/50 sm:col-span-2">
+                <i class="fa-solid fa-volume-high text-purple-400 mt-0.5"></i>
+                <span>تعزيزات صوتية عربية عند كل <strong class="text-purple-300">إجابة صحيحة</strong></span>
+            </div>
+        </div>
+
+        <p class="text-[11px] text-slate-500 text-center pt-2 border-t border-slate-800">
+            <i class="fa-solid fa-circle-info text-emerald-500"></i>
+            المنصة تحفظ تقدمك تلقائياً في متصفحك.
+        </p>
+
+        <button onclick="closeRulesModal()" class="w-full py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold rounded-xl shadow-lg transition text-sm">
+            فهمت، لنبدأ! 🚀
+        </button>
+    </div>
+</div>
 </body>
               </html>
