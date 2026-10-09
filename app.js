@@ -15,7 +15,7 @@ const CONFIG = {
 };
 
 const TOTAL_LEVELS = 270;
-const RESET_CODE = "NAHW-RESET-2026-ADMIN";
+const RESET_CODE = "فيلادلفيا";
 
 // ==================== الأصوات ====================
 const SOUNDS = {
