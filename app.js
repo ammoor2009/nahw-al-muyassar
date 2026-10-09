@@ -230,7 +230,6 @@ function openTrainingArena() {
     renderTrainingTopics();
 }
 function goToWelcome() {
-    // إيقاف أي مؤقتات شغّالة
     if (typeof questionTimerInterval !== 'undefined' && questionTimerInterval) {
         clearInterval(questionTimerInterval);
     }
@@ -238,8 +237,8 @@ function goToWelcome() {
 
     hideAllScreens();
     globalStatus.classList.add('hidden');
+    document.getElementById('nav-buttons').classList.add('hidden');   // ⬅️ السطر المُضاف
     welcomeScreen.classList.remove('hidden');
-
     // إعادة تعبئة الاسم إن وُجد
     if (gameState.studentName) {
         document.getElementById('student-name-input').value = gameState.studentName;
