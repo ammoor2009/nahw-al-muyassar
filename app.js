@@ -238,6 +238,13 @@ function goToWelcome() {
         document.getElementById('student-name-input').value = gameState.studentName;
     }
 }
+function openRulesModal() {
+    document.getElementById('rules-modal').classList.remove('hidden');
+}
+
+function closeRulesModal() {
+    document.getElementById('rules-modal').classList.add('hidden');
+}
 // ==================== عرض المراحل ====================
 function renderStagesGrid() {
     const grid = document.getElementById('stages-grid');
