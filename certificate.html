@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>شهادة الإنجاز — النحو الميسّر</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Amiri:wght@400;700&family=Aref+Ruqaa:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: #1a1a1a;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .certificate {
+            width: 297mm;
+            min-height: 210mm;
+            margin: 0 auto;
+            background: linear-gradient(135deg, #fefcf5 0%, #faf6e9 50%, #fefcf5 100%);
+            padding: 12mm;
+            position: relative;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        }
+
+        .certificate-inner {
+            border: 3px double #b8860b;
+            padding: 8mm;
+            position: relative;
+            min-height: calc(210mm - 24mm);
+            background: 
+                radial-gradient(circle at 20% 20%, rgba(184, 134, 11, 0.03) 0%, transparent 40%),
+                radial-gradient(circle at 80% 80%, rgba(184, 134, 11, 0.03) 0%, transparent 40%);
+        }
+
+        .certificate-frame {
+            border: 1px solid #d4af37;
+            padding: 6mm;
+            min-height: 100%;
+            position: relative;
+        }
+
+        /* زخارف الزوايا */
+        .corner {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            border: 3px solid #b8860b;
+        }
+        .corner-tl { top: 5mm; left: 5mm; border-right: none; border-bottom: none; }
+        .corner-tr { top: 5mm; right: 5mm; border-left: none; border-bottom: none; }
+        .corner-bl { bottom: 5mm; left: 5mm; border-right: none; border-top: none; }
+        .corner-br { bottom: 5mm; right: 5mm; border-left: none; border-top: none; }
+
+        .cert-title {
+            font-family: 'Aref Ruqaa', serif;
+            color: #8b6914;
+            letter-spacing: 1px;
+        }
+
+        .student-name {
+            font-family: 'Amiri', serif;
+            color: #1a1a1a;
+            text-shadow: 1px 1px 2px rgba(184, 134, 11, 0.2);
+        }
+
+        .badge-box {
+            padding: 8px;
+            border-radius: 12px;
+            transition: all 0.3s;
+        }
+
+        .badge-box.locked {
+            filter: grayscale(1);
+            opacity: 0.35;
+        }
+
+        .diamond-badge {
+            position: relative;
+            background: linear-gradient(135deg, #e0f2fe, #a5f3fc, #67e8f9);
+            box-shadow: 0 0 40px rgba(34, 211, 238, 0.6), inset 0 0 20px rgba(255,255,255,0.8);
+        }
+
+        .uuid-stamp {
+            font-family: 'Courier New', monospace;
+            letter-spacing: 2px;
+            border: 2px dashed #b8860b;
+            color: #8b6914;
+        }
+
+        .signature-line {
+            border-bottom: 1.5px solid #8b6914;
+            width: 60mm;
+            margin: 0 auto;
+        }
+
+        @media print {
+            body { background: white; padding: 0; }
+            .certificate { box-shadow: none; margin: 0; }
+            .no-print { display: none !important; }
+            @page {
+                size: A4 landscape;
+                margin: 0;
+            }
+        }
+
+        .action-bar {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- زر الطباعة العائم -->
+    <div class="action-bar no-print flex gap-3">
+        <button onclick="window.print()" 
+            class="px-6 py-3 bg-gradient-to-r from-amber-600 to-yellow-700 hover:from-amber-500 hover:to-yellow-600 text-white font-bold rounded-2xl shadow-2xl transition flex items-center gap-2 border border-amber-400/50">
+            <i class="fa-solid fa-print text-lg"></i>
+            <span>طباعة / حفظ PDF</span>
+        </button>
+        <button onclick="window.close()" 
+            class="px-6 py-3 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-2xl shadow-2xl transition flex items-center gap-2 border border-slate-700">
+            <i class="fa-solid fa-xmark text-lg"></i>
+            <span>إغلاق</span>
+        </button>
+    </div>
+
+    <div class="certificate">
+        <div class="certificate-inner">
+            <div class="certificate-frame">
+
+                <div class="corner corner-tl"></div>
+                <div class="corner corner-tr"></div>
+                <div class="corner corner-bl"></div>
+                <div class="corner corner-br"></div>
+
+                <!-- Header -->
+                <div class="text-center" style="padding-top: 4mm;">
+                    <div class="flex items-center justify-center gap-3 mb-3">
+                        <div style="width: 14mm; height: 14mm; background: linear-gradient(135deg, #059669, #0d9488); border-radius: 4mm; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);">
+                            <i class="fa-solid fa-graduation-cap" style="color: white; font-size: 20px;"></i>
+                        </div>
+                        <div style="text-align: right;">
+                            <h2 style="font-size: 16px; font-weight: 900; color: #065f46; margin: 0;">النحو الميسّر</h2>
+                            <p style="font-size: 9px; color: #78716c; margin: 0;">المنصة الأكاديمية التفاعلية</p>
+                        </div>
+                    </div>
+
+                    <div style="height: 1px; background: linear-gradient(to right, transparent, #b8860b, transparent); margin: 3mm 0;"></div>
+
+                    <h1 class="cert-title" style="font-size: 42px; font-weight: 700; margin: 4mm 0 2mm 0;">
+                        شهادة تقدير وتتويج
+                    </h1>
+                    <p style="font-size: 14px; color: #6b7280; font-style: italic; margin: 0;">
+                        بإشراف الدكتور عمر الرواجفة
+                    </p>
+
+                    <div style="margin: 6mm 0 4mm 0;">
+                        <div style="font-size: 12px; color: #78716c; margin-bottom: 2mm;">تُمنح هذه الشهادة بكل فخر واعتزاز إلى</div>
+                        <div id="student-name" class="student-name" style="font-size: 36px; font-weight: 700; color: #1a1a1a; padding: 2mm 0;">
+                            — اسم الطالب —
+                        </div>
+                        <div style="width: 80mm; height: 2px; background: linear-gradient(to right, transparent, #b8860b, transparent); margin: 1mm auto;"></div>
+                    </div>
+
+                    <p style="font-size: 13px; color: #44403c; line-height: 1.9; max-width: 200mm; margin: 4mm auto;">
+                        تقديراً لما أبداه من جهدٍ متميّز وإصرارٍ على إتمام رحلة تعلّم قواعد اللغة العربية،
+                        وإتمامه كامل مستويات منصة <strong style="color: #92400e;">النحو الميسّر</strong> الـ 270 مستوى عبر 26 مرحلة نحوية،
+                        وإثباته جدارةً حقيقية بالتفوق والإتقان.
+                    </p>
+                </div>
+
+                <!-- Stats -->
+                <div class="flex justify-center gap-8 my-5" style="margin: 6mm 0;">
+                    <div style="text-align: center;">
+                        <div style="font-size: 26px; font-weight: 900; color: #b8860b; font-family: 'Amiri', serif;">270 / 270</div>
+                        <div style="font-size: 10px; color: #78716c;">مستوى مُنجَز</div>
+                    </div>
+                    <div style="width: 1px; background: #d4af37;"></div>
+                    <div style="text-align: center;">
+                        <div style="font-size: 26px; font-weight: 900; color: #b8860b; font-family: 'Amiri', serif;">26 / 26</div>
+                        <div style="font-size: 10px; color: #78716c;">مرحلة مكتملة</div>
+                    </div>
+                    <div style="width: 1px; background: #d4af37;"></div>
+                    <div style="text-align: center;">
+                        <div id="student-score" style="font-size: 26px; font-weight: 900; color: #b8860b; font-family: 'Amiri', serif;">0</div>
+                        <div style="font-size: 10px; color: #78716c;">نقطة</div>
+                    </div>
+                </div>
+
+                <!-- Diamond Badge -->
+                <div class="text-center" style="margin: 4mm 0;">
+                    <div class="diamond-badge" style="display: inline-block; padding: 6mm 8mm; border-radius: 6mm; border: 2px solid #06b6d4;">
+                        <div style="font-size: 40px; color: #0e7490; margin-bottom: 2mm;">
+                            <i class="fa-solid fa-gem"></i>
+                        </div>
+                        <div style="font-family: 'Aref Ruqaa', serif; font-size: 20px; color: #0c4a6e; font-weight: 700;">
+                            درع الأسطورة الماسي
+                        </div>
+                        <div style="font-size: 11px; color: #155e75; margin-top: 1mm;">
+                            بطل الأبطال الأوحد
+                        </div>
+                    </div>
+                    <p style="font-size: 11px; color: #57534e; font-style: italic; max-width: 180mm; margin: 3mm auto 0; line-height: 1.7;">
+                        «المجد لمن صبر واجتهد! لقد أتممت الـ 270 مستوى وتجاوزت التحدي الأكبر بجدارة واستحقاق مطلق.»
+                    </p>
+                </div>
+
+                <!-- 6 Badges Showcase -->
+                <div style="margin: 5mm 0 4mm;">
+                    <div style="text-align: center; font-size: 11px; color: #78716c; margin-bottom: 2mm;">
+                        <i class="fa-solid fa-award" style="color: #b8860b;"></i> الدروع الست المكتسبة
+                    </div>
+                    <div id="badges-grid" class="flex justify-center gap-3 flex-wrap"></div>
+                </div>
+
+                <!-- Footer -->
+                <div class="flex justify-between items-end" style="margin-top: 6mm;">
+                    <div style="text-align: center;">
+                        <div class="signature-line"></div>
+                        <p style="font-size: 10px; color: #78716c; margin-top: 2mm;">إشراف أكاديمي</p>
+                        <p style="font-size: 12px; color: #44403c; font-weight: 700; margin: 0;">د. عمر الرواجفة</p>
+                    </div>
+
+                    <div style="text-align: center;">
+                        <div class="uuid-stamp" style="padding: 2mm 4mm; border-radius: 3mm; font-size: 11px;">
+                            <i class="fa-solid fa-certificate"></i>
+                            <span id="uuid-display">NM-0000-0000-0000</span>
+                        </div>
+                        <p style="font-size: 9px; color: #78716c; margin: 2mm 0 0 0;">كود التحقق المعتمد</p>
+                    </div>
+
+                    <div style="text-align: center;">
+                        <div class="signature-line"></div>
+                        <p style="font-size: 10px; color: #78716c; margin-top: 2mm;">تاريخ الإنجاز</p>
+                        <p id="issue-date" style="font-size: 12px; color: #44403c; font-weight: 700; margin: 0;">
+                            — / — / —
+                        </p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // تحميل بيانات الطالب من localStorage
+        const STORAGE_KEY = 'nahw_game_state';
+
+        const BADGES = [
+            { id: 1, title: "درع البداية المضيئة", rank: "مبتدئ واعد", icon: "fa-seedling", color: "#92400e", range: [1, 5] },
+            { id: 2, title: "درع سفير الحروف", rank: "سفير اللسان", icon: "fa-feather", color: "#c2410c", range: [6, 10] },
+            { id: 3, title: "درع بطل المعرفة", rank: "فارس المعرفة", icon: "fa-shield-halved", color: "#475569", range: [11, 15] },
+            { id: 4, title: "درع الحكيم اللغوي", rank: "حارس القواعد", icon: "fa-crown", color: "#a16207", range: [16, 20] },
+            { id: 5, title: "درع فارس الميدان", rank: "عميد الفرسان", icon: "fa-medal", color: "#ca8a04", range: [21, 25] },
+            { id: 6, title: "درع الأسطورة", rank: "بطل الأبطال", icon: "fa-gem", color: "#0891b2", range: [26, 26] }
+        ];
+
+        function loadData() {
+            const raw = localStorage.getItem(STORAGE_KEY);
+            if (!raw) {
+                document.getElementById('student-name').textContent = '— لا توجد بيانات —';
+                return null;
+            }
+            try {
+                return JSON.parse(raw);
+            } catch (e) {
+                return null;
+            }
+        }
+
+        function render() {
+            const state = loadData();
+
+            if (!state || !state.studentName) {
+                document.getElementById('student-name').textContent = '— لا توجد بيانات —';
+                document.getElementById('uuid-display').textContent = 'غير متاح';
+                return;
+            }
+
+            // الاسم
+            document.getElementById('student-name').textContent = state.studentName;
+
+            // النقاط
+            document.getElementById('student-score').textContent = (state.score || 0).toLocaleString('ar-EG');
+
+            // UUID
+            document.getElementById('uuid-display').textContent = state.uuid || 'NM-0000-0000-0000';
+
+            // التاريخ
+            const now = new Date();
+            const day = String(now.getDate()).padStart(2, '0');
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const year = now.getFullYear();
+            document.getElementById('issue-date').textContent = `${day} / ${month} / ${year}`;
+
+            // الدروع
+            const completedStages = (state.completedStages || []).length;
+            const badgesGrid = document.getElementById('badges-grid');
+            badgesGrid.innerHTML = '';
+
+            BADGES.forEach(badge => {
+                const isEarned = completedStages >= badge.range[0];
+                const div = document.createElement('div');
+                div.className = `badge-box ${isEarned ? '' : 'locked'}`;
+                div.style.cssText = `
+                    background: linear-gradient(135deg, ${badge.color}22, ${badge.color}11);
+                    border: 1.5px solid ${isEarned ? badge.color : '#d1d5db'};
+                    width: 32mm;
+                    text-align: center;
+                `;
+                div.innerHTML = `
+                    <div style="font-size: 22px; color: ${badge.color}; margin-bottom: 1mm;">
+                        <i class="fa-solid ${badge.icon}"></i>
+                    </div>
+                    <div style="font-size: 9px; font-weight: 700; color: #1a1a1a; line-height: 1.3;">
+                        ${badge.title}
+                    </div>
+                    <div style="font-size: 8px; color: #78716c; margin-top: 1mm;">
+                        ${badge.rank}
+                    </div>
+                `;
+                badgesGrid.appendChild(div);
+            });
+        }
+
+        window.addEventListener('load', render);
+    </script>
+
+</body>
+</html>
