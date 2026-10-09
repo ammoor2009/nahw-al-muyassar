@@ -208,6 +208,7 @@ function goToDashboard() {
     regenHearts();
     hideAllScreens();
     updateGlobalHeader();
+    document.getElementById('nav-buttons').classList.remove('hidden');   // ⬅️ السطر المُضاف
 
     if (gameState.hearts <= 0) {
         outOfHeartsScreen.classList.remove('hidden');
