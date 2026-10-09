@@ -182,9 +182,15 @@ function hideAllScreens() {
         .forEach(el => el && el.classList.add('hidden'));
 }
 
+function formatNumber(n) {
+    if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M';
+    if (n >= 1000) return (n / 1000).toFixed(1) + 'K';
+    return n;
+}
+
 function updateGlobalHeader() {
-    document.getElementById('header-hearts').textContent = gameState.hearts;
-    document.getElementById('header-score').textContent = gameState.score;
+    document.getElementById('header-hearts').textContent = formatNumber(gameState.hearts);
+    document.getElementById('header-score').textContent = formatNumber(gameState.score);
     if (gameState.studentName) {
         document.getElementById('header-student-name').textContent = gameState.studentName;
     }
