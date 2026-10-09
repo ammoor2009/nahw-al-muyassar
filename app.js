@@ -386,7 +386,14 @@ let levelTransitionInProgress = false;
 function startStageQuiz(stageId) {
     regenHearts();
     if (gameState.hearts <= 0) { goToDashboard(); return; }
-    const stage = window.stagesDatabase.find(s => s.id === stageId);
+    const idx = window.stagesDatabase.findIndex(s => s.id === stageId);
+const isUnlocked = gameState.unlockedStages.includes(stageId) || idx === 0;
+if (!isUnlocked) {
+    showToast("🔒 هذه المرحلة مقفلة — أكمل المرحلة السابقة أولاً");
+    return;
+}
+
+const stage = window.stagesDatabase.find(s => s.id === stageId);
     if (!stage || !stage.levels || stage.levels.length === 0) return;
 
     const progress = gameState.stageProgress[stageId] || { completedLevels: [] };
