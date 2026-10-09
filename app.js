@@ -14,7 +14,7 @@ const CONFIG = {
 };
 
 // ==================== الأصوات الثمانية ====================
-// ==================== الأصوات الثمانية ====================
+
 const SOUNDS = {
     ahsant:       { file: 'sounds/Ahsant.mp3',         text: 'أحسنت' },
     momtaz:       { file: 'sounds/Momtaz.mp3',         text: 'ممتاز' },
