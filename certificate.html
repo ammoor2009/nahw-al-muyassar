@@ -255,7 +255,7 @@
             // Stats
             document.getElementById('stat-levels').textContent = `${completedLevels} / ${TOTAL_LEVELS}`;
             document.getElementById('stat-stages').textContent = `${completedStages} / ${TOTAL_STAGES}`;
-            document.getElementById('stat-score').textContent = (state.score || 0).toLocaleString('ar-EG');
+            document.getElementById('stat-score').textContent = String(state.score || 0);
 
             // Current Badge
             const badgeBox = document.getElementById('current-badge-box');
