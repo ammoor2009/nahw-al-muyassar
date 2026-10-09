@@ -222,7 +222,22 @@ function openTrainingArena() {
     trainingScreen.classList.remove('hidden');
     renderTrainingTopics();
 }
+function goToWelcome() {
+    // إيقاف أي مؤقتات شغّالة
+    if (typeof questionTimerInterval !== 'undefined' && questionTimerInterval) {
+        clearInterval(questionTimerInterval);
+    }
+    if (typeof stopHeartTimer === 'function') stopHeartTimer();
 
+    hideAllScreens();
+    globalStatus.classList.add('hidden');
+    welcomeScreen.classList.remove('hidden');
+
+    // إعادة تعبئة الاسم إن وُجد
+    if (gameState.studentName) {
+        document.getElementById('student-name-input').value = gameState.studentName;
+    }
+}
 // ==================== عرض المراحل ====================
 function renderStagesGrid() {
     const grid = document.getElementById('stages-grid');
