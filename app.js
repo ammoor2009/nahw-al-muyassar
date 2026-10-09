@@ -1,5 +1,5 @@
 /* ============================================================
-   النحو الميسّر — المنطق الرئيسي (نظام المستويات)
+   النحو الميسّر — المنطق الرئيسي (نظام المستويات + الدروع + الشهادة)
    ============================================================ */
 
 // ==================== الإعدادات العامة ====================
@@ -13,6 +13,9 @@ const CONFIG = {
     STORAGE_KEY: 'nahw_game_state',
     STATE_VERSION: 2
 };
+
+const TOTAL_LEVELS = 270;
+const RESET_CODE = "NAHW-RESET-2026-ADMIN";
 
 // ==================== الأصوات ====================
 const SOUNDS = {
@@ -77,9 +80,69 @@ function playErrorSound() {
     } catch (e) { }
 }
 
+// ==================== نظام الدروع ====================
+const BADGES = [
+    {
+        id: 1,
+        title: "درع البداية المضيئة",
+        rank: "مبتدئ واعد",
+        color: "from-amber-700 to-amber-900",
+        icon: "fa-seedling",
+        range: [1, 5],
+        message: "خطوتك الأولى هي أساس كل نجاح عظيم! لقد أضاءت بدايتك عتمة التردد، فاستمر بهذا العزم المنير."
+    },
+    {
+        id: 2,
+        title: "درع سفير الحروف",
+        rank: "سفير اللسان",
+        color: "from-orange-600 to-amber-800",
+        icon: "fa-feather",
+        range: [6, 10],
+        message: "لقد عبرت البدايات وأثبتَّ جدارتك؛ كلماتك تتصاعد بثبات، ومعرفتك تتسع يوماً بعد يوم. إلى الأمام!"
+    },
+    {
+        id: 3,
+        title: "درع بطل المعرفة",
+        rank: "فارس المعرفة المتمكن",
+        color: "from-slate-400 to-slate-600",
+        icon: "fa-shield-halved",
+        range: [11, 15],
+        message: "تجاوزت منتصف الطريق باقتدار! عزيمتك الصلبة تصنع منك بطلًا حقيقيًا لا يعرف اليأس ولا الاستسلام."
+    },
+    {
+        id: 4,
+        title: "درع الحكيم اللغوي",
+        rank: "حارس القواعد",
+        color: "from-yellow-500 to-amber-700",
+        icon: "fa-crown",
+        range: [16, 20],
+        message: "عقلك الراجح وفكرك الثاقب يؤكدان أنك قُمت ببناء قاعدة صلبة من المهارات. لم يبقَ إلا القليل لتصل للقمة!"
+    },
+    {
+        id: 5,
+        title: "درع فارس الميدان",
+        rank: "عميد الفرسان",
+        color: "from-yellow-400 to-yellow-600",
+        icon: "fa-medal",
+        range: [21, 25],
+        message: "أنت على أعتاب القمة الكبرى! شجاعتك في اجتياز هذه المراحل المعقدة تؤهلك لتكون الأبرز بين زملائك."
+    },
+    {
+        id: 6,
+        title: "درع الأسطورة",
+        rank: "بطل الأبطال الأوحد",
+        color: "from-cyan-400 to-blue-600",
+        icon: "fa-gem",
+        range: [26, 26],
+        message: "المجد لمن صبر واجتهد! لقد أتممت الـ 270 مستوى وتجاوزت التحدي الأكبر بجدارة واستحقاق مطلق. أنت الآن أسطورة تُخلَّد في سجل الفرسان الأوائل!"
+    }
+];
+
 // ==================== الحالة ====================
 let gameState = {
     studentName: "",
+    nameLocked: false,
+    uuid: "",
     hearts: CONFIG.MAX_HEARTS,
     score: 0,
     streak: 0,
@@ -97,7 +160,6 @@ function loadSavedState() {
     if (raw) {
         try {
             const parsed = JSON.parse(raw);
-            // ترقية الحالة القديمة
             if (!parsed.version || parsed.version < CONFIG.STATE_VERSION) {
                 parsed.hearts = CONFIG.MAX_HEARTS;
                 parsed.version = CONFIG.STATE_VERSION;
@@ -105,6 +167,8 @@ function loadSavedState() {
             }
             gameState = { ...gameState, ...parsed };
             if (!gameState.stageProgress) gameState.stageProgress = {};
+            if (typeof gameState.nameLocked !== 'boolean') gameState.nameLocked = false;
+            if (!gameState.uuid) gameState.uuid = "";
         } catch (e) { console.error("خطأ في تحميل الحالة", e); }
     }
 }
@@ -112,6 +176,36 @@ function loadSavedState() {
 function saveState() {
     gameState.version = CONFIG.STATE_VERSION;
     localStorage.setItem(CONFIG.STORAGE_KEY, JSON.stringify(gameState));
+}
+
+// ==================== دوال مساعدة ====================
+function getTotalLevelsCompleted() {
+    let total = 0;
+    for (const stageId in gameState.stageProgress) {
+        const p = gameState.stageProgress[stageId];
+        if (p && p.completedLevels) total += p.completedLevels.length;
+    }
+    return total;
+}
+
+function getProgressPercent() {
+    return Math.round((getTotalLevelsCompleted() / TOTAL_LEVELS) * 100);
+}
+
+function getCurrentBadge() {
+    const completedStages = gameState.completedStages.length;
+    if (completedStages === 0) return null;
+    for (let i = BADGES.length - 1; i >= 0; i--) {
+        if (completedStages >= BADGES[i].range[0]) return BADGES[i];
+    }
+    return null;
+}
+
+function generateUUID() {
+    const part1 = Math.random().toString(36).substring(2, 6).toUpperCase();
+    const part2 = Math.random().toString(36).substring(2, 6).toUpperCase();
+    const year = new Date().getFullYear();
+    return `NM-${year}-${part1}-${part2}`;
 }
 
 // ==================== القلوب ====================
@@ -186,7 +280,8 @@ const stageRuleModal = document.getElementById('stage-rule-modal');
 function hideAllScreens() {
     [welcomeScreen, dashboardScreen, trainingScreen, quizScreen,
      resultScreen, outOfHeartsScreen, stageRuleModal,
-     document.getElementById('rules-modal')]
+     document.getElementById('rules-modal'),
+     document.getElementById('reset-modal')]
         .forEach(el => el && el.classList.add('hidden'));
 }
 
@@ -205,7 +300,14 @@ function updateGlobalHeader() {
 }
 
 function startJourney() {
-    const name = document.getElementById('student-name-input').value.trim();
+    const input = document.getElementById('student-name-input');
+
+    if (gameState.nameLocked) {
+        goToDashboard();
+        return;
+    }
+
+    const name = input.value.trim();
     if (!name) { showToast("الرجاء إدخال اسمك الكريم للبدء!"); return; }
     gameState.studentName = name;
     saveState();
@@ -230,19 +332,35 @@ function goToDashboard() {
     document.getElementById('welcome-banner-title').textContent =
         `أهلاً بك يا ${gameState.studentName || 'طالب العلم'}`;
     renderStagesGrid();
+    renderProgressBar();
 }
 
 function goToWelcome() {
-    if (questionTimerInterval) clearInterval(questionTimerInterval);
-    stopHeartTimer();
+    if (typeof questionTimerInterval !== 'undefined' && questionTimerInterval) {
+        clearInterval(questionTimerInterval);
+    }
+    if (typeof stopHeartTimer === 'function') stopHeartTimer();
 
     hideAllScreens();
     globalStatus.classList.add('hidden');
     document.getElementById('nav-buttons').classList.add('hidden');
     welcomeScreen.classList.remove('hidden');
 
+    const input = document.getElementById('student-name-input');
+    const lockIcon = document.getElementById('name-lock-icon');
+
     if (gameState.studentName) {
-        document.getElementById('student-name-input').value = gameState.studentName;
+        input.value = gameState.studentName;
+    }
+
+    if (gameState.nameLocked) {
+        input.disabled = true;
+        input.classList.add('opacity-60', 'cursor-not-allowed');
+        if (lockIcon) lockIcon.classList.remove('hidden');
+    } else {
+        input.disabled = false;
+        input.classList.remove('opacity-60', 'cursor-not-allowed');
+        if (lockIcon) lockIcon.classList.add('hidden');
     }
 }
 
@@ -259,6 +377,43 @@ function openTrainingArena() {
     document.getElementById('nav-buttons').classList.remove('hidden');
     trainingScreen.classList.remove('hidden');
     renderTrainingTopics();
+}
+
+// ==================== شريط التقدم العام ====================
+function renderProgressBar() {
+    const totalEl = document.getElementById('progress-total-levels');
+    const percentEl = document.getElementById('progress-percent');
+    const fillEl = document.getElementById('progress-fill');
+    const badgeEl = document.getElementById('progress-badge');
+    const rankEl = document.getElementById('progress-rank');
+
+    if (!totalEl || !percentEl || !fillEl) return;
+
+    const total = getTotalLevelsCompleted();
+    const percent = getProgressPercent();
+    const currentBadge = getCurrentBadge();
+
+    totalEl.textContent = `${total} / ${TOTAL_LEVELS}`;
+    percentEl.textContent = `${percent}%`;
+    fillEl.style.width = `${percent}%`;
+
+    if (currentBadge) {
+        if (badgeEl) {
+            badgeEl.className = `w-10 h-10 rounded-xl bg-gradient-to-br ${currentBadge.color} flex items-center justify-center text-white shadow-lg`;
+            badgeEl.innerHTML = `<i class="fa-solid ${currentBadge.icon}"></i>`;
+        }
+        if (rankEl) {
+            rankEl.textContent = currentBadge.rank;
+        }
+    } else {
+        if (badgeEl) {
+            badgeEl.className = `w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center text-slate-500 shadow`;
+            badgeEl.innerHTML = `<i class="fa-solid fa-lock"></i>`;
+        }
+        if (rankEl) {
+            rankEl.textContent = "لم تبدأ رحلتك بعد";
+        }
+    }
 }
 
 // ==================== عرض المراحل ====================
@@ -374,7 +529,7 @@ function renderTrainingTopics() {
     });
 }
 
-// ==================== منطق الاختبار (نظام المستويات) ====================
+// ==================== منطق الاختبار ====================
 let currentStageData = null;
 let currentQuestionPool = [];
 let questionsAnsweredThisLevel = 0;
@@ -386,14 +541,15 @@ let levelTransitionInProgress = false;
 function startStageQuiz(stageId) {
     regenHearts();
     if (gameState.hearts <= 0) { goToDashboard(); return; }
-    const idx = window.stagesDatabase.findIndex(s => s.id === stageId);
-const isUnlocked = gameState.unlockedStages.includes(stageId) || idx === 0;
-if (!isUnlocked) {
-    showToast("🔒 هذه المرحلة مقفلة — أكمل المرحلة السابقة أولاً");
-    return;
-}
 
-const stage = window.stagesDatabase.find(s => s.id === stageId);
+    const idx = window.stagesDatabase.findIndex(s => s.id === stageId);
+    const isUnlocked = gameState.unlockedStages.includes(stageId) || idx === 0;
+    if (!isUnlocked) {
+        showToast("🔒 هذه المرحلة مقفلة — أكمل المرحلة السابقة أولاً");
+        return;
+    }
+
+    const stage = window.stagesDatabase.find(s => s.id === stageId);
     if (!stage || !stage.levels || stage.levels.length === 0) return;
 
     const progress = gameState.stageProgress[stageId] || { completedLevels: [] };
@@ -428,7 +584,6 @@ function loadQuizQuestion() {
         return;
     }
 
-    // اختيار سؤال عشوائي مع تجنب نفس السؤال السابق إن أمكن
     let idx = Math.floor(Math.random() * currentQuestionPool.length);
     if (currentQuestionPool.length > 1 && currentQuestionPool[idx] === currentQuestion) {
         idx = (idx + 1) % currentQuestionPool.length;
@@ -677,12 +832,80 @@ function finishStage() {
         const exists = window.stagesDatabase.find(s => s.id === nextId);
         if (exists) gameState.unlockedStages.push(nextId);
     }
+
+    // قفل الاسم بعد إتمام المرحلة 1 + توليد UUID
+    if (currentStageData.id === 1 && !gameState.nameLocked) {
+        gameState.nameLocked = true;
+        if (!gameState.uuid) gameState.uuid = generateUUID();
+        showToast("🔒 تم قفل اسمك نهائيًا مع توليد كود الشهادة");
+    }
+
+    // فحص إن كان قد أكمل كل المراحل
+    if (gameState.completedStages.length >= 26) {
+        setTimeout(() => {
+            showToast("🎉 مبروك! أكملت جميع المراحل — يمكنك استخراج شهادتك الآن!");
+        }, 2500);
+    }
+
     saveState();
 }
 
 function restartCurrentStage() {
     if (!currentStageData) { goToDashboard(); return; }
     startStageQuiz(currentStageData.id);
+}
+
+// ==================== شهادة الإنجاز ====================
+function openCertificate() {
+    if (gameState.completedStages.length < 26) {
+        showToast("🔒 أكمل جميع المراحل أولاً لاستخراج الشهادة");
+        return;
+    }
+    // فتح صفحة الشهادة
+    window.open('certificate.html', '_blank');
+}
+
+// ==================== نظام التصفير ====================
+function openResetModal() {
+    const modal = document.getElementById('reset-modal');
+    modal.classList.remove('hidden');
+    document.getElementById('reset-code-input').value = "";
+    document.getElementById('reset-error').classList.add('hidden');
+}
+
+function closeResetModal() {
+    document.getElementById('reset-modal').classList.add('hidden');
+}
+
+function confirmReset() {
+    const entered = document.getElementById('reset-code-input').value.trim();
+    if (entered !== RESET_CODE) {
+        document.getElementById('reset-error').classList.remove('hidden');
+        return;
+    }
+
+    localStorage.removeItem(CONFIG.STORAGE_KEY);
+    gameState = {
+        studentName: "",
+        nameLocked: false,
+        uuid: "",
+        hearts: CONFIG.MAX_HEARTS,
+        score: 0,
+        streak: 0,
+        currentStageId: null,
+        currentLevel: 1,
+        unlockedStages: [1],
+        completedStages: [],
+        stageProgress: {},
+        lastHeartRegenTime: Date.now(),
+        version: CONFIG.STATE_VERSION
+    };
+
+    closeResetModal();
+    showToast("✅ تم تصفير كل شيء بنجاح");
+    setTimeout(() => {
+        location.reload();
+    }, 1200);
 }
 
 // ==================== Toast ====================
@@ -699,8 +922,21 @@ window.addEventListener('load', function () {
     loadSavedState();
     regenHearts();
     updateGlobalHeader();
+
+    const input = document.getElementById('student-name-input');
+    const lockIcon = document.getElementById('name-lock-icon');
+
     if (gameState.studentName) {
-        document.getElementById('student-name-input').value = gameState.studentName;
+        input.value = gameState.studentName;
     }
+
+    if (gameState.nameLocked) {
+        input.disabled = true;
+        input.classList.add('opacity-60', 'cursor-not-allowed');
+        if (lockIcon) lockIcon.classList.remove('hidden');
+    } else {
+        if (lockIcon) lockIcon.classList.add('hidden');
+    }
+
     console.log(`✅ تم تحميل ${window.stagesDatabase.length} مرحلة.`);
 });
