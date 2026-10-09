@@ -857,11 +857,10 @@ function restartCurrentStage() {
 
 // ==================== شهادة الإنجاز ====================
 function openCertificate() {
-    if (gameState.completedStages.length < 26) {
-        showToast("🔒 أكمل جميع المراحل أولاً لاستخراج الشهادة");
+    if (!gameState.studentName) {
+        showToast("الرجاء إدخال اسمك أولاً");
         return;
     }
-    // فتح صفحة الشهادة
     window.open('certificate.html', '_blank');
 }
 
