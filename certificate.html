@@ -26,7 +26,23 @@
         .signature-line { border-bottom: 1.5px solid #8b6914; width: 60mm; margin: 0 auto; }
         .progress-bar-bg { background: #e5e7eb; border-radius: 10px; overflow: hidden; height: 10px; }
         .progress-bar-fill { background: linear-gradient(to right, #b8860b, #d4af37); height: 100%; transition: width 0.5s; }
-        @media print { body { background: white; padding: 0; } .certificate { box-shadow: none; margin: 0; } .no-print { display: none !important; } @page { size: A4 landscape; margin: 0; } }
+        @media print { 
+    body { background: white; padding: 0; margin: 0; }
+    .certificate { 
+        box-shadow: none; 
+        margin: 0; 
+        width: 297mm; 
+        min-height: 210mm; 
+        padding: 5mm; 
+    }
+    .certificate-inner { padding: 4mm; }
+    .certificate-frame { padding: 3mm; }
+    .no-print { display: none !important; }
+    @page { 
+        size: A4 landscape; 
+        margin: 0; 
+    }
+}
         .action-bar { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 100; }
     </style>
 </head>
