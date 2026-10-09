@@ -1,20 +1,20 @@
 /* ============================================================
-   النحو الميسّر — المنطق الرئيسي
+   النحو الميسّر — المنطق الرئيسي (نظام المستويات)
    ============================================================ */
 
 // ==================== الإعدادات العامة ====================
 const CONFIG = {
-    MAX_HEARTS: 10,
-    HEART_REGEN_MS: 10 * 60 * 1000,          // 10 دقائق
+    MAX_HEARTS: 20,
+    HEART_REGEN_MS: 10 * 60 * 1000,
     HEART_REGEN_AMOUNT: 3,
-    QUESTION_TIME: 30,                        // ثوانٍ
+    QUESTION_TIME: 30,
     POINTS_PER_CORRECT: 10,
     STREAK_FOR_BONUS_HEART: 5,
-    STORAGE_KEY: 'nahw_game_state'
+    STORAGE_KEY: 'nahw_game_state',
+    STATE_VERSION: 2
 };
 
-// ==================== الأصوات الثمانية ====================
-
+// ==================== الأصوات ====================
 const SOUNDS = {
     ahsant:       { file: 'sounds/Ahsant.mp3',         text: 'أحسنت' },
     momtaz:       { file: 'sounds/Momtaz.mp3',         text: 'ممتاز' },
@@ -50,7 +50,6 @@ function speakText(text) {
     }
 }
 
-// اختيار صوت التعزيز حسب طول السلسلة
 function pickPraiseSound() {
     const s = gameState.streak;
     if (s >= 10) return 'momtazAbda3t';
@@ -61,7 +60,6 @@ function pickPraiseSound() {
     return light[Math.floor(Math.random() * light.length)];
 }
 
-// نغمة الخطأ (لعدم وجود wrong.mp3)
 let audioCtx = null;
 function playErrorSound() {
     try {
@@ -76,7 +74,7 @@ function playErrorSound() {
         gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
         osc.connect(gain); gain.connect(audioCtx.destination);
         osc.start(); osc.stop(audioCtx.currentTime + 0.3);
-    } catch (e) { /* تجاهل */ }
+    } catch (e) { }
 }
 
 // ==================== الحالة ====================
@@ -86,10 +84,12 @@ let gameState = {
     score: 0,
     streak: 0,
     currentStageId: null,
-    currentQuestionIdx: 0,
+    currentLevel: 1,
     unlockedStages: [1],
     completedStages: [],
-    lastHeartRegenTime: Date.now()
+    stageProgress: {},
+    lastHeartRegenTime: Date.now(),
+    version: CONFIG.STATE_VERSION
 };
 
 function loadSavedState() {
@@ -97,12 +97,20 @@ function loadSavedState() {
     if (raw) {
         try {
             const parsed = JSON.parse(raw);
+            // ترقية الحالة القديمة
+            if (!parsed.version || parsed.version < CONFIG.STATE_VERSION) {
+                parsed.hearts = CONFIG.MAX_HEARTS;
+                parsed.version = CONFIG.STATE_VERSION;
+                if (!parsed.stageProgress) parsed.stageProgress = {};
+            }
             gameState = { ...gameState, ...parsed };
+            if (!gameState.stageProgress) gameState.stageProgress = {};
         } catch (e) { console.error("خطأ في تحميل الحالة", e); }
     }
 }
 
 function saveState() {
+    gameState.version = CONFIG.STATE_VERSION;
     localStorage.setItem(CONFIG.STORAGE_KEY, JSON.stringify(gameState));
 }
 
@@ -158,7 +166,7 @@ function startHeartTimerCountdown() {
         if (gameState.hearts > 0) {
             stopHeartTimer();
             goToDashboard();
-            showToast("❤️ تمت استعادة القلوب بنجاح! استمر في التعلم.");
+            showToast("❤️ تمت استعادة القلوب بنجاح!");
         }
     };
     tick();
@@ -208,7 +216,7 @@ function goToDashboard() {
     regenHearts();
     hideAllScreens();
     updateGlobalHeader();
-    document.getElementById('nav-buttons').classList.remove('hidden');   // ⬅️ السطر المُضاف
+    document.getElementById('nav-buttons').classList.remove('hidden');
 
     if (gameState.hearts <= 0) {
         outOfHeartsScreen.classList.remove('hidden');
@@ -224,34 +232,35 @@ function goToDashboard() {
     renderStagesGrid();
 }
 
-function openTrainingArena() {
-    hideAllScreens();
-    globalStatus.classList.remove('hidden');
-    trainingScreen.classList.remove('hidden');
-    renderTrainingTopics();
-}
 function goToWelcome() {
-    if (typeof questionTimerInterval !== 'undefined' && questionTimerInterval) {
-        clearInterval(questionTimerInterval);
-    }
-    if (typeof stopHeartTimer === 'function') stopHeartTimer();
+    if (questionTimerInterval) clearInterval(questionTimerInterval);
+    stopHeartTimer();
 
     hideAllScreens();
     globalStatus.classList.add('hidden');
-    document.getElementById('nav-buttons').classList.add('hidden');   // ⬅️ السطر المُضاف
+    document.getElementById('nav-buttons').classList.add('hidden');
     welcomeScreen.classList.remove('hidden');
-    // إعادة تعبئة الاسم إن وُجد
+
     if (gameState.studentName) {
         document.getElementById('student-name-input').value = gameState.studentName;
     }
 }
+
 function openRulesModal() {
     document.getElementById('rules-modal').classList.remove('hidden');
 }
-
 function closeRulesModal() {
     document.getElementById('rules-modal').classList.add('hidden');
 }
+
+function openTrainingArena() {
+    hideAllScreens();
+    globalStatus.classList.remove('hidden');
+    document.getElementById('nav-buttons').classList.remove('hidden');
+    trainingScreen.classList.remove('hidden');
+    renderTrainingTopics();
+}
+
 // ==================== عرض المراحل ====================
 function renderStagesGrid() {
     const grid = document.getElementById('stages-grid');
@@ -263,6 +272,12 @@ function renderStagesGrid() {
     stages.forEach((stage, idx) => {
         const isUnlocked = gameState.unlockedStages.includes(stage.id) || idx === 0;
         const isCompleted = gameState.completedStages.includes(stage.id);
+        const progress = gameState.stageProgress[stage.id] || { completedLevels: [] };
+        const totalLevels = stage.levels ? stage.levels.length : 0;
+        const completedLevels = progress.completedLevels.length;
+        const progressText = totalLevels > 0 
+            ? `${Math.min(completedLevels + 1, totalLevels)} / ${totalLevels}` 
+            : '';
 
         const card = document.createElement('div');
         card.className = `bg-slate-900/80 backdrop-blur-md rounded-3xl p-6 border ${isUnlocked ? 'border-emerald-500/30 shadow-xl' : 'border-slate-800 opacity-60'} transition flex flex-col justify-between group relative overflow-hidden`;
@@ -275,7 +290,7 @@ function renderStagesGrid() {
                         <i class="fa-solid ${stage.icon} text-xl"></i>
                     </div>
                     <span class="px-2.5 py-1 rounded-full text-xs font-bold ${isCompleted ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : (isUnlocked ? 'bg-slate-800 text-slate-300 border border-slate-700' : 'bg-slate-800 text-slate-500')}">
-                        ${isCompleted ? '<i class="fa-solid fa-check text-emerald-400"></i> مكتملة' : (isUnlocked ? `المرحلة ${stage.id}` : '<i class="fa-solid fa-lock"></i> مقفلة')}
+                        ${isCompleted ? '<i class="fa-solid fa-check text-emerald-400"></i> مكتملة' : (isUnlocked ? progressText : '<i class="fa-solid fa-lock"></i> مقفلة')}
                     </span>
                 </div>
                 <div class="space-y-1">
@@ -288,7 +303,7 @@ function renderStagesGrid() {
                     <i class="fa-solid fa-book-open"></i> دليل القاعدة
                 </button>
                 <button ${isUnlocked ? `onclick="startStageQuiz(${stage.id})"` : 'disabled'} class="flex-1 py-2 ${isUnlocked ? 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-md shadow-emerald-600/30' : 'bg-slate-800 text-slate-500 cursor-not-allowed'} font-bold rounded-xl transition text-xs flex items-center justify-center gap-1.5">
-                    <span>ابدأ التحدي</span> <i class="fa-solid fa-arrow-left"></i>
+                    <span>${isCompleted ? 'إعادة' : 'ابدأ'}</span> <i class="fa-solid fa-arrow-left"></i>
                 </button>
             </div>
         `;
@@ -340,26 +355,39 @@ function renderTrainingTopics() {
     });
 }
 
-// ==================== منطق الاختبار ====================
+// ==================== منطق الاختبار (نظام المستويات) ====================
 let currentStageData = null;
-let questionCorrectCount = 0;
+let currentQuestionPool = [];
+let questionsAnsweredThisLevel = 0;
+let currentQuestion = null;
 let questionTimerInterval = null;
 let questionTimeLeft = CONFIG.QUESTION_TIME;
+let levelTransitionInProgress = false;
 
 function startStageQuiz(stageId) {
     regenHearts();
     if (gameState.hearts <= 0) { goToDashboard(); return; }
     const stage = window.stagesDatabase.find(s => s.id === stageId);
-    if (!stage) return;
+    if (!stage || !stage.levels || stage.levels.length === 0) return;
+
+    const progress = gameState.stageProgress[stageId] || { completedLevels: [] };
+    let startLevel = 1;
+    for (let i = 1; i <= stage.levels.length; i++) {
+        if (!progress.completedLevels.includes(i)) { startLevel = i; break; }
+    }
+    if (progress.completedLevels.length >= stage.levels.length) startLevel = 1;
 
     currentStageData = stage;
     gameState.currentStageId = stageId;
-    gameState.currentQuestionIdx = 0;
-    questionCorrectCount = 0;
-    gameState.streak = 0;
+    gameState.currentLevel = startLevel;
+    currentQuestionPool = [...stage.levels[startLevel - 1].questions];
+    questionsAnsweredThisLevel = 0;
+    currentQuestion = null;
+    levelTransitionInProgress = false;
 
     hideAllScreens();
     globalStatus.classList.remove('hidden');
+    document.getElementById('nav-buttons').classList.remove('hidden');
     quizScreen.classList.remove('hidden');
     updateGlobalHeader();
     loadQuizQuestion();
@@ -367,34 +395,52 @@ function startStageQuiz(stageId) {
 
 function loadQuizQuestion() {
     if (questionTimerInterval) clearInterval(questionTimerInterval);
+    levelTransitionInProgress = false;
+
+    if (currentQuestionPool.length === 0) {
+        handleLevelComplete();
+        return;
+    }
+
+    // اختيار سؤال عشوائي مع تجنب نفس السؤال السابق إن أمكن
+    let idx = Math.floor(Math.random() * currentQuestionPool.length);
+    if (currentQuestionPool.length > 1 && currentQuestionPool[idx] === currentQuestion) {
+        idx = (idx + 1) % currentQuestionPool.length;
+    }
+    currentQuestion = currentQuestionPool[idx];
+    const qData = currentQuestion;
+
     questionTimeLeft = CONFIG.QUESTION_TIME;
     updateQuestionTimerUI();
     startQuestionTimer();
 
-    const qData = currentStageData.questions[gameState.currentQuestionIdx];
-    document.getElementById('current-q-index').textContent = gameState.currentQuestionIdx + 1;
-    document.getElementById('total-q-index').textContent = currentStageData.questions.length;
-    document.getElementById('streak-counter').textContent = gameState.streak;
+    const levelData = currentStageData.levels[gameState.currentLevel - 1];
+    const totalInLevel = levelData.questions.length;
+    const remaining = currentQuestionPool.length;
+    const done = totalInLevel - remaining;
 
-    const pct = ((gameState.currentQuestionIdx + 1) / currentStageData.questions.length) * 100;
-    document.getElementById('quiz-progress-bar').style.width = `${pct}%`;
-    document.getElementById('quiz-stage-badge').textContent = currentStageData.title;
+    document.getElementById('current-q-index').textContent = Math.min(done + 1, totalInLevel);
+    document.getElementById('total-q-index').textContent = totalInLevel;
+    document.getElementById('streak-counter').textContent = gameState.streak;
+    document.getElementById('quiz-progress-bar').style.width = `${(done / totalInLevel) * 100}%`;
+    document.getElementById('quiz-stage-badge').textContent = `${currentStageData.title} — المستوى ${gameState.currentLevel}`;
     document.getElementById('quiz-difficulty-badge').textContent = `مستوى ${qData.difficulty}`;
     document.getElementById('quiz-question-text').textContent = qData.q;
+
     document.getElementById('quiz-feedback-box').classList.add('hidden');
 
     const optionsContainer = document.getElementById('quiz-options-container');
     optionsContainer.innerHTML = '';
     const labels = ['أ', 'ب', 'ج', 'د'];
 
-    qData.options.forEach((opt, idx) => {
+    qData.options.forEach((opt, i) => {
         const btn = document.createElement('button');
         btn.className = "option-btn w-full text-right p-4 rounded-2xl bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700 transition font-semibold text-white flex items-center justify-between group shadow-md";
         btn.innerHTML = `
             <span class="text-sm md:text-base">${opt}</span>
-            <span class="w-8 h-8 rounded-xl bg-slate-700/80 flex items-center justify-center text-xs text-slate-300 group-hover:bg-emerald-600 group-hover:text-white transition">${labels[idx] || idx + 1}</span>
+            <span class="w-8 h-8 rounded-xl bg-slate-700/80 flex items-center justify-center text-xs text-slate-300 group-hover:bg-emerald-600 group-hover:text-white transition">${labels[i] || i + 1}</span>
         `;
-        btn.onclick = () => submitAnswer(idx, btn);
+        btn.onclick = () => submitAnswer(i, btn);
         optionsContainer.appendChild(btn);
     });
 }
@@ -437,7 +483,8 @@ function revealCorrect(buttons, answerIdx) {
 }
 
 function handleTimeOut() {
-    const qData = currentStageData.questions[gameState.currentQuestionIdx];
+    if (!currentQuestion) return;
+    const qData = currentQuestion;
     const buttons = disableOptions();
     revealCorrect(buttons, qData.answer);
 
@@ -447,7 +494,7 @@ function handleTimeOut() {
 
     const box = document.getElementById('quiz-feedback-box');
     document.getElementById('feedback-header').innerHTML =
-        `<i class="fa-solid fa-clock text-rose-400"></i> <span class="text-rose-300">انتهى الوقت! خُصم قلب واحد</span>`;
+        `<i class="fa-solid fa-clock text-rose-400"></i> <span class="text-rose-300">انتهى الوقت! سيُعاد عليك السؤال — خُصم قلب</span>`;
     document.getElementById('feedback-explanation').textContent =
         `الإجابة الصحيحة: "${qData.options[qData.answer]}".\n${qData.explanation}`;
     document.getElementById('feedback-training-tip').classList.remove('hidden');
@@ -459,7 +506,9 @@ function handleTimeOut() {
 
 function submitAnswer(selectedIndex, selectedButton) {
     if (questionTimerInterval) clearInterval(questionTimerInterval);
-    const qData = currentStageData.questions[gameState.currentQuestionIdx];
+    if (!currentQuestion) return;
+
+    const qData = currentQuestion;
     const buttons = disableOptions();
     const box = document.getElementById('quiz-feedback-box');
     const header = document.getElementById('feedback-header');
@@ -469,7 +518,7 @@ function submitAnswer(selectedIndex, selectedButton) {
         selectedButton.classList.remove('bg-slate-800/80', 'border-slate-700');
         selectedButton.classList.add('bg-emerald-600/90', 'border-emerald-400');
 
-        questionCorrectCount++;
+        questionsAnsweredThisLevel++;
         gameState.score += CONFIG.POINTS_PER_CORRECT;
         gameState.streak++;
 
@@ -478,8 +527,11 @@ function submitAnswer(selectedIndex, selectedButton) {
 
         if (gameState.streak > 0 && gameState.streak % CONFIG.STREAK_FOR_BONUS_HEART === 0) {
             gainHeart();
-            showToast("🎉 حصلت على قلب إضافي لإجاباتك المتتالية!");
+            showToast("🎉 حصلت على قلب إضافي!");
         }
+
+        const idx = currentQuestionPool.indexOf(qData);
+        if (idx > -1) currentQuestionPool.splice(idx, 1);
 
         const praiseText = SOUNDS[soundKey].text;
         box.className = "p-5 rounded-2xl border bg-emerald-950/60 border-emerald-500/40 space-y-3 animate-fade-in";
@@ -496,15 +548,20 @@ function submitAnswer(selectedIndex, selectedButton) {
         loseHeart();
 
         box.className = "p-5 rounded-2xl border bg-rose-950/60 border-rose-500/40 space-y-3 animate-fade-in";
-        header.innerHTML = `<i class="fa-solid fa-circle-xmark text-rose-400"></i> <span class="text-rose-300">إجابة خاطئة — خُصم قلب واحد</span>`;
+        header.innerHTML = `<i class="fa-solid fa-circle-xmark text-rose-400"></i> <span class="text-rose-300">إجابة خاطئة — سيُعاد عليك السؤال لاحقًا</span>`;
         explanation.textContent = `الإجابة الصحيحة: "${qData.options[qData.answer]}".\n${qData.explanation}`;
         document.getElementById('feedback-training-tip').classList.remove('hidden');
 
         if (gameState.hearts <= 0) {
+            document.getElementById('streak-counter').textContent = gameState.streak;
+            box.classList.remove('hidden');
+            updateGlobalHeader();
             saveState();
             setTimeout(goToDashboard, 1800);
+            return;
         }
     }
+
     document.getElementById('streak-counter').textContent = gameState.streak;
     box.classList.remove('hidden');
     updateGlobalHeader();
@@ -512,56 +569,79 @@ function submitAnswer(selectedIndex, selectedButton) {
 }
 
 function nextQuestion() {
-    gameState.currentQuestionIdx++;
-    if (gameState.currentQuestionIdx < currentStageData.questions.length) {
-        loadQuizQuestion();
+    if (currentQuestionPool.length === 0) {
+        handleLevelComplete();
     } else {
-        finishStage();
+        loadQuizQuestion();
     }
+}
+
+function handleLevelComplete() {
+    if (levelTransitionInProgress) return;
+    levelTransitionInProgress = true;
+
+    if (!gameState.stageProgress[gameState.currentStageId]) {
+        gameState.stageProgress[gameState.currentStageId] = { completedLevels: [] };
+    }
+    if (!gameState.stageProgress[gameState.currentStageId].completedLevels.includes(gameState.currentLevel)) {
+        gameState.stageProgress[gameState.currentStageId].completedLevels.push(gameState.currentLevel);
+    }
+    saveState();
+
+    const nextLevel = gameState.currentLevel + 1;
+    const totalLevels = currentStageData.levels.length;
+
+    if (nextLevel > totalLevels) {
+        finishStage();
+        return;
+    }
+
+    playSound('momtazAbda3t');
+    const box = document.getElementById('quiz-feedback-box');
+    const header = document.getElementById('feedback-header');
+    const explanation = document.getElementById('feedback-explanation');
+    box.className = "p-5 rounded-2xl border bg-emerald-950/60 border-emerald-500/40 space-y-3 animate-fade-in";
+    header.innerHTML = `<i class="fa-solid fa-trophy text-amber-400"></i> <span class="text-emerald-300">أتممت المستوى ${gameState.currentLevel} بنجاح!</span>`;
+    explanation.textContent = `استعد للمستوى ${nextLevel} من ${totalLevels}...`;
+    document.getElementById('feedback-training-tip').classList.add('hidden');
+    box.classList.remove('hidden');
+    document.getElementById('quiz-options-container').innerHTML = '';
+    document.getElementById('quiz-question-text').textContent = '...';
+    updateGlobalHeader();
+
+    setTimeout(() => {
+        gameState.currentLevel = nextLevel;
+        currentQuestionPool = [...currentStageData.levels[nextLevel - 1].questions];
+        questionsAnsweredThisLevel = 0;
+        currentQuestion = null;
+        levelTransitionInProgress = false;
+        loadQuizQuestion();
+    }, 2200);
 }
 
 function finishStage() {
     if (questionTimerInterval) clearInterval(questionTimerInterval);
     hideAllScreens();
     globalStatus.classList.remove('hidden');
+    document.getElementById('nav-buttons').classList.remove('hidden');
     resultScreen.classList.remove('hidden');
 
-    const total = currentStageData.questions.length;
-    const pct = Math.round((questionCorrectCount / total) * 100);
+    const totalLevels = currentStageData.levels.length;
+    const completedLevels = gameState.stageProgress[currentStageData.id].completedLevels.length;
 
     document.getElementById('result-stage-title').textContent = currentStageData.title;
-    document.getElementById('result-correct-count').textContent = questionCorrectCount;
-    document.getElementById('result-total-count').textContent = total;
+    document.getElementById('result-correct-count').textContent = completedLevels;
+    document.getElementById('result-total-count').textContent = totalLevels;
 
     const badge = document.getElementById('result-badge-text');
     const icon = document.getElementById('result-trophy-icon');
     const title = document.getElementById('result-title-text');
 
-    if (pct === 100) {
-        badge.textContent = "إتقان تام 🏆";
-        badge.className = "inline-block px-3 py-1 bg-amber-500/20 text-amber-300 rounded-full text-xs font-bold border border-amber-500/30";
-        icon.className = "fa-solid fa-trophy text-5xl text-amber-400";
-        title.textContent = "أتممت المرحلة بإتقان!";
-        playSound('momtazAbda3t');
-    } else if (pct >= 80) {
-        badge.textContent = "ممتاز";
-        badge.className = "inline-block px-3 py-1 bg-emerald-500/20 text-emerald-300 rounded-full text-xs font-bold border border-emerald-500/30";
-        icon.className = "fa-solid fa-trophy text-5xl text-amber-400";
-        title.textContent = "أتممت المرحلة بنجاح!";
-        playSound('rae3Jedd');
-    } else if (pct >= 60) {
-        badge.textContent = "جيد — يحتاج مراجعة";
-        badge.className = "inline-block px-3 py-1 bg-teal-500/20 text-teal-300 rounded-full text-xs font-bold border border-teal-500/30";
-        icon.className = "fa-solid fa-medal text-5xl text-teal-300";
-        title.textContent = "أتممت المرحلة";
-        playSound('momtaz');
-    } else {
-        badge.textContent = "راجع دليل القاعدة";
-        badge.className = "inline-block px-3 py-1 bg-rose-500/20 text-rose-300 rounded-full text-xs font-bold border border-rose-500/30";
-        icon.className = "fa-solid fa-book-open text-5xl text-rose-300";
-        title.textContent = "تحتاج لمزيد من التدريب";
-        playSound('elaAlamam');
-    }
+    badge.textContent = "إتقان تام 🏆";
+    badge.className = "inline-block px-3 py-1 bg-amber-500/20 text-amber-300 rounded-full text-xs font-bold border border-amber-500/30";
+    icon.className = "fa-solid fa-trophy text-5xl text-amber-400";
+    title.textContent = "أتممت جميع المستويات بإتقان!";
+    playSound('momtazAbda3t');
 
     if (!gameState.completedStages.includes(currentStageData.id)) {
         gameState.completedStages.push(currentStageData.id);
@@ -596,5 +676,5 @@ window.addEventListener('load', function () {
     if (gameState.studentName) {
         document.getElementById('student-name-input').value = gameState.studentName;
     }
-    console.log(`✅ تم تحميل ${window.stagesDatabase.length} مرحلة من بنك الأسئلة.`);
+    console.log(`✅ تم تحميل ${window.stagesDatabase.length} مرحلة.`);
 });
