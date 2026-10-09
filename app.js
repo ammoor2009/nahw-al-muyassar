@@ -314,15 +314,34 @@ function renderStagesGrid() {
 function openStageRuleModal(stageId) {
     const stage = window.stagesDatabase.find(s => s.id === stageId);
     if (!stage) return;
+
+    const idx = window.stagesDatabase.findIndex(s => s.id === stageId);
+    const isUnlocked = gameState.unlockedStages.includes(stageId) || idx === 0;
+
     document.getElementById('modal-rule-title').textContent = `دليل قسم: ${stage.title}`;
     document.getElementById('modal-rule-content').textContent = stage.ruleSummary;
-    const icon = document.getElementById('modal-rule-icon');
-    icon.className = `w-12 h-12 rounded-2xl bg-gradient-to-br ${stage.color} flex items-center justify-center text-white shadow-lg`;
-    icon.innerHTML = `<i class="fa-solid ${stage.icon} text-xl"></i>`;
-    document.getElementById('modal-start-quiz-btn').onclick = () => {
-        closeStageRuleModal();
-        startStageQuiz(stage.id);
-    };
+
+    const iconContainer = document.getElementById('modal-rule-icon');
+    iconContainer.className = `w-12 h-12 rounded-2xl bg-gradient-to-br ${stage.color} flex items-center justify-center text-white shadow-lg`;
+    iconContainer.innerHTML = `<i class="fa-solid ${stage.icon} text-xl"></i>`;
+
+    const startBtn = document.getElementById('modal-start-quiz-btn');
+
+    if (isUnlocked) {
+        startBtn.disabled = false;
+        startBtn.className = "flex-1 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold rounded-xl shadow-lg transition text-sm flex items-center justify-center gap-2";
+        startBtn.innerHTML = '<i class="fa-solid fa-play"></i> بدء تحدي القسم';
+        startBtn.onclick = () => {
+            closeStageRuleModal();
+            startStageQuiz(stageId);
+        };
+    } else {
+        startBtn.disabled = true;
+        startBtn.className = "flex-1 py-3 bg-slate-800 text-slate-500 cursor-not-allowed font-bold rounded-xl border border-slate-700 transition text-sm flex items-center justify-center gap-2";
+        startBtn.innerHTML = '<i class="fa-solid fa-lock"></i> المرحلة مقفلة';
+        startBtn.onclick = null;
+    }
+
     stageRuleModal.classList.remove('hidden');
 }
 
